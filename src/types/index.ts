@@ -48,4 +48,18 @@ export interface VirtualTour {
   description: string;
   plants: string[];
   coverImage: string;
+  category: string;
+  duration: number;
+  difficulty: string;
+  participants: number;
+}
+
+export interface GardenPlant {
+  id: string;
+  plant: Plant;
+  plantedDate: Date;
+  lastWatered?: Date;
+  notes: string[];
+  status: 'healthy' | 'needs_attention' | 'diseased';
+  progress: number;
 }
