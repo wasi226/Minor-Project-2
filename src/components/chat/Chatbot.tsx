@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Camera, Loader, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessage } from '../../types';
+import axios from 'axios';
 
 const Chatbot: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -25,7 +26,7 @@ const Chatbot: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
   
-  const handleSend = () => {
+  const handleSend = async () => {
     if (input.trim() === '') return;
     
     const userMessage: ChatMessage = {
@@ -39,18 +40,31 @@ const Chatbot: React.FC = () => {
     setInput('');
     setIsTyping(true);
     
-    // Simulate bot response after a short delay
-    setTimeout(() => {
+    try {
+      const response = await axios.post('http://localhost:5000/api/chatbot/chat', {
+        message: input
+      });
+      
       const botResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        text: generateBotResponse(input),
+        text: response.data.response,
         sender: 'bot',
         timestamp: new Date(),
       };
       
       setMessages(prev => [...prev, botResponse]);
+    } catch (error) {
+      console.error('Failed to get chatbot response:', error);
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again later.",
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
   
   const handleFileUpload = () => {
@@ -69,23 +83,10 @@ const Chatbot: React.FC = () => {
       setIsUploading(false);
     }, 2000);
   };
-  
-  const generateBotResponse = (query: string): string => {
-    const lowerQuery = query.toLowerCase();
-    
-    if (lowerQuery.includes('tulsi') || lowerQuery.includes('holy basil')) {
-      return "Tulsi (Holy Basil) is one of the most sacred herbs in India. In Ayurveda, it's used for respiratory conditions, stress relief, and immune support. It has adaptogenic properties that help the body cope with stress.";
-    } else if (lowerQuery.includes('ashwagandha')) {
-      return "Ashwagandha is a powerful adaptogenic herb used in Ayurveda. It helps reduce stress and anxiety, improves concentration, and supports overall vitality. It's often used for promoting restful sleep and supporting the nervous system.";
-    } else if (lowerQuery.includes('neem') || lowerQuery.includes('azadirachta indica')) {
-      return "Neem (Azadirachta indica) is known as the 'village pharmacy' in India. It has powerful antibacterial, antifungal, and blood-purifying properties. In Ayurveda, it's used for skin disorders, diabetes management, and oral health.";
-    } else if (lowerQuery.includes('turmeric') || lowerQuery.includes('curcuma longa')) {
-      return "Turmeric (Curcuma longa) contains curcumin, which has powerful anti-inflammatory properties. In Ayurveda, it's used for pain relief, improving digestion, and supporting liver function. It's also known for its antioxidant properties.";
-    } else if (lowerQuery.includes('hello') || lowerQuery.includes('hi') || lowerQuery.includes('hey')) {
-      return "Hello! I'm your Virtual Herbal Garden Assistant. I can help you identify plants, share information about medicinal herbs used in AYUSH systems, and answer questions about their uses and cultivation. How may I assist you today?";
-    } else {
-      return "That's an interesting question about medicinal plants. In the AYUSH systems, plants are categorized based on their therapeutic properties and effects on the body's doshas or energies. Would you like me to share more specific information about a particular plant or healing tradition?";
-    }
+
+  const handleSuggestedQuestion = (question: string) => {
+    setInput(question);
+    handleSend();
   };
   
   return (
@@ -204,6 +205,32 @@ const Chatbot: React.FC = () => {
               <Send className="h-4 w-4" />
             </button>
           )}
+        </div>
+      </div>
+
+      <div className="mt-12 bg-gray-50 p-8 rounded-xl shadow-sm">
+        <h2 className="font-serif text-2xl font-semibold text-gray-900 mb-6 text-center">
+          Example Questions to Ask
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[
+            "What are the health benefits of Tulsi?",
+            "How do I grow Ashwagandha at home?",
+            "What herbs are used for digestive health in Ayurveda?",
+            "Tell me about the medicinal properties of Turmeric",
+            "What's the difference between Ayurveda and Unani systems?",
+            "What plants help with stress according to AYUSH?",
+            "How is Neem used in traditional medicine?",
+            "Can you recommend herbs for improving sleep?"
+          ].map((question, index) => (
+            <button 
+              key={index}
+              onClick={() => handleSuggestedQuestion(question)}
+              className="bg-white p-3 rounded-lg border border-gray-200 text-gray-700 hover:bg-primary-50 hover:border-primary-200 transition-colors text-left"
+            >
+              "{question}"
+            </button>
+          ))}
         </div>
       </div>
     </div>
