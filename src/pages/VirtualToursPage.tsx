@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Map, Users, Clock, Leaf } from 'lucide-react';
 import axios from 'axios';
@@ -9,6 +9,7 @@ const VirtualToursPage: React.FC = () => {
   const [tours, setTours] = useState<VirtualTour[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const navigate = useNavigate();
 
   useEffect(() => {
     // In production, this would fetch from the API
@@ -64,6 +65,10 @@ const VirtualToursPage: React.FC = () => {
     ? tours 
     : tours.filter(tour => tour.category === selectedCategory);
 
+  const handleStartTour = (tourId: string) => {
+    navigate(`/tour/${tourId}`);
+  };
+
   return (
     <div className="pt-20">
       <div className="bg-primary-700 text-white py-16 px-4">
@@ -116,7 +121,8 @@ const VirtualToursPage: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => handleStartTour(tour.id)}
               >
                 <div className="relative h-48 overflow-hidden">
                   <img
@@ -155,12 +161,11 @@ const VirtualToursPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <Link
-                    to={`/tour/${tour.id}`}
+                  <button
                     className="block w-full text-center bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition-colors"
                   >
                     Start Tour
-                  </Link>
+                  </button>
                 </div>
               </motion.div>
             ))}
