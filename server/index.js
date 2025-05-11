@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 const plantRoutes = require('./routes/plants');
 const userRoutes = require('./routes/users');
 const tourRoutes = require('./routes/tours');
@@ -13,6 +14,10 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, '../public')));
+app.use('/models', express.static(path.join(__dirname, '../public/models')));
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
